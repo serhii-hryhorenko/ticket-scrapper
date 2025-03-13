@@ -1,28 +1,36 @@
 package lastevent
 
-import "fmt"
+import (
+	"encoding/binary"
+	"os"
+	"sync/atomic"
+	"time"
+)
 
-type EventDuration struct {
-	Minutes        int    `json:"minutes"`
-	GenitiveMinute string `json:"genitive_minutes"`
+const lastEventFile = "last_event.dat"
+
+var LastEvent atomic.Int64
+
+func InitLastEvent() {
+	data, err := os.ReadFile(lastEventFile)
+	if err == nil && len(data) == 8 {
+		value := int64(binary.LittleEndian.Uint64(data))
+		LastEvent.Store(value)
+	}
+
+	go periodicSave()
 }
 
-type Event struct {
-	ID            int           `json:"id"`
-	Name          string        `json:"name"`
-	MonthYear     string        `json:"month_year"`
-	EventDate     string        `json:"event_date"`
-	EventDuration EventDuration `json:"event_duration"`
-	Image         string        `json:"image"`
-	Route         string        `json:"route"`
+func SaveLastEvent() error {
+	value := LastEvent.Load()
+	data := make([]byte, 8)
+	binary.LittleEndian.PutUint64(data, uint64(value))
+	return os.WriteFile(lastEventFile, data, 0644)
 }
 
-func (event Event) String() string {
-	return fmt.Sprintf("🎭*Нова вистава*: %s\n*Дата*: %s\n*Тривалість*: %d хв\n\n🔗*Посилання*: %s",
-		event.Name, event.EventDate, event.EventDuration.Minutes, event.Route)
-}
-
-func (event Event) BackfillString() string {
-	return fmt.Sprintf("🎭*Нова вистава*: %s\n*Дата*: %s\n\n🔗*Посилання*: %s",
-		event.Name, event.EventDate, event.Route)
+func periodicSave() {
+	ticker := time.NewTicker(1 * time.Minute)
+	for range ticker.C {
+		SaveLastEvent()
+	}
 }
