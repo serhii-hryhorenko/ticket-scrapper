@@ -1,18 +1,23 @@
 package main
 
 import (
-    "ticket-scrapper/internal/bot"
-    "ticket-scrapper/last-event/event"
-    "time"
+	"ticket-scrapper/internal/bot"
+	lastEvent "ticket-scrapper/internal/last-event"
+	"ticket-scrapper/internal/scraper"
+	"time"
 )
 
 const URL = "https://sales.ft.org.ua/events"
-const botToken =
-const channelID =
+
+// placeholder values for now
+const botToken = ""
+const channelID = 123
 
 func main() {
-    bot := bot.New(botToken, channelID)
+	bot := bot.New(botToken, channelID)
+	crawler := scraper.New(URL, 30*time.Second, &bot)
 
-    lastEvent.LastEvent.Store(int64(5470))
-    lastEvent.InitLastEvent()
+	lastEvent.LastEvent.Store(int64(5470))
+	lastEvent.InitLastEvent()
+	crawler.StartCrawler()
 }
