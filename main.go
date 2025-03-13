@@ -15,9 +15,9 @@ const channelID = 123
 
 func main() {
 	bot := bot.New(botToken, channelID)
-	crawler := scraper.New(URL, 30*time.Second, &bot)
+	scraper := scraper.New(URL, 30*time.Second, &bot)
 
 	lastEvent.LastEvent.Store(int64(5470))
 	lastEvent.InitLastEvent()
-	crawler.StartCrawler()
+	scraper.StartCrawler()
 }
